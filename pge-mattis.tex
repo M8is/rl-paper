@@ -45,16 +45,13 @@ grestore
 
 \begin{abstract}
 
-TODO
-
-Policy gradient methods use a policy model to decide which actions maximize the expected accumulated reward received in a given environment. 
-Policies can be deterministic but are often stochastic to accommodate for the nature of the given environment. 
-One class of problems that is frequently chosen to evaluate these methods are continuous control problems. Depending on the environment the formal design of an optimal controller can be infeasible or very labor-intensive. 
-Policy gradient methods can provide useful control models while aiming to optimize their data efficiency, thus requiring less resources for the learning process. 
-The efficiency of these methods highly depends on the direction of change, i.e., the gradient they estimate. 
-The goal of policy gradient estimation is to estimate a function that predicts how the policy should be changed to solve the reinforcement learning problem of maximizing the accumulated reward of an agent.  
-Thus, different functions for estimating the gradient have been proposed, some of which outperform others in specific areas. 
-This survey gives a general introduction to policy gradient, and gives an overview of existing gradient estimation approaches. 
+The goal of policy gradient approaches is to find a policy in a given class of policies which maximizes the expected return.
+Given a differentiale model of the policy, e.g. exponential policies, we want to apply a gradient-ascent technique to reach the local optimum. 
+The main issue is that the policy gradient with respect to the expected return is not available, and we need to estimate it.
+Gradient ascent has strong guarantees on convergence, and is theoretically well researched.
+However, the main weakness of policy gradient algorithms is sample efficiency, as they tend to require on-policy data, and conservative learning rates.
+Thus, most research is focused on finding algorithms with improved sample efficiency.
+This paper provides a deep introduction to policy gradient that shows the development of policy gradient approaches, and should enable the reader to understand current research in the area. 
 
 \keywords{reinforcement learning \and policy gradients \and actor-critic \and natural gradient }
 \end{abstract}
@@ -93,8 +90,7 @@ We assume a Markov Decision Process (MDP), meaning the probability distribution 
 \end{equation}
 Where we define $i:j$ with $i,j \in \mathbb{N}, i < j$ as an index over all integers from $i$ to $j$, i.e., $s_{i:j} := s_i, s_{i+1}, \dots, s_j$. 
 
-Distributions often used as policies are Gibbs policies $\pi_\theta(a|s) = \frac{exp(\phi(s,a)^T\theta)}{\sum_b exp(\phi(s,b)^T\theta)}$ \cite{Sutton:1999:PGM:3009657.3009806,Bagnell2004LearningD} for discrete problems, and Gaussian policies $\pi_\theta(a|s) = N(\phi(s,a)^T\phi_1,\phi_2)$ for continuous problems, where $\phi_2$ is an exploration parameter \cite{Williams92simplestatistical,peter:article:1996}. 
-$\phi(s,a)$ is the vector of basis functions on the state-action pair.
+The most frequently used policy classes in policy gradient approaches are Gibbs policies $\pi_\theta(a|s) = \frac{exp(\phi(s,a)^T\theta)}{\sum_b exp(\phi_1(s,b)^T\theta)}$ \cite{Sutton:1999:PGM:3009657.3009806,Bagnell2004LearningD} for discrete problems, and Gaussian policies $\pi_\theta(a|s) = \mathcal{N}(\phi(s,a)^T\theta_1,\theta_2)$ for continuous problems, where $\theta_2$ is an exploration parameter \cite{Williams92simplestatistical,peter:article:1996}, and $\phi(s,a)$ is the vector of basis functions on the state-action pair.
 
 \paragraph{Policy gradient.} 
 Our goal with respect to episodes is to maximize the expectation of the total reward, also called expected return. 
@@ -115,9 +111,13 @@ It is shown that for $\lim_{k\to\infty}\alpha_k = 0$, and $\sum_{k=0}^\infty \al
 \section{Policy Gradient Estimation}
 \label{sec:pge}
 
-\paragraph{Finite-difference gradients.} TODO
-
-Since finite-difference gradients suffer from the curse of dimensionality, they are too inefficient for many realistic scenarios. 
+\paragraph{Finite-difference gradients.} 
+A simple approach for gradient estimation is to choose a small $\delta\theta$, and evaluate the new policy given the slightly changed parameters as in 
+\begin{equation}
+	\nabla_\theta J(\theta) \approx \frac{J(\theta+\delta\theta)J(\theta-\delta\theta)}{2\delta\theta}.
+\end{equation} 
+This can lend a good estimate of the gradient given a small $\delta$, and is generally called the symmetric derivative. 
+However, finite-difference gradients suffer from the curse of dimensionality, and can require very small $\delta\theta$, thus they only work well in specific scenarios, but should not be discarded due to simplicity. 
 
 \paragraph{Value functions.} 
 Given we know the actual value, i.e. the expected accumulated reward we will get when we start in a state $s_t$, this function can be used to evaluate the performance of our policy.
@@ -126,16 +126,15 @@ Given we know the actual value, i.e. the expected accumulated reward we will get
 	\label{eqn:v}
 \end{equation}
 
-In general, we need to approximate this function. 
-Obviously, REINFORCE does this approximation by a simple Monte-Carlo sample. 
-However, there is a formulation of policy gradient methods that implements this approximation problem explicitly called actor-critic, which we discuss in \ref{sec:ac}. 
-
-Another frequently used function is the state-action value function. 
-Instead of the expected accumulated reward starting from state $s_t$, this function gives the expected accumulated reward given an action $a_t$ is selected
+As we will see, this function also gives us the true gradient of $J(\theta$, though in general we need to estimate it. 
+In addition to the value function, we also define the state-action value function, often called Q-function. 
+Instead of the expected accumulated reward starting from state $s_t$, this function gives the expected accumulated reward given an action $a_t$ is selected in state $s_t$, 
 \begin{equation}
 	Q^{\pi}(s_t, a_t) := \mathbb{E}_{\substack{s_{t+1:h} \\ a_{t+1:h}}}\left[\mathcal{R}_t^h\right].
 	\label{eqn:q}
 \end{equation}
+
+Using the value function, and the Q-function, we can derive a better estimate of the policy gradient.
 
 \paragraph{Likelihood-ratio gradients.} 
 For this derivation, we will change the perspective a bit requiring some additional definitions. 
@@ -152,22 +151,21 @@ From this, we derive
 \end{align}
 so we can reformulate the problem as 
 \begin{align}
-	\underset{\theta}{\text{max}}\ J(\theta) &= \mu_0^T r_\pi \\
-	\text{s.t.}\ r_\pi &= \gamma P_\pi V_\pi . \nonumber
+	\underset{\theta}{\text{max}}\ J(\theta) &= \mu_0^T V_\pi \\
+	\text{s.t.}\ V_\pi &= r_\pi + \gamma P_\pi V_\pi . \nonumber
 \end{align}
-From which we can derive 
+Where $V_\pi = \left[ V_\pi(s_0), V_\pi(s_1), \ldots \right]^T$. We derive 
 \begin{align*}
-	\nabla_\theta J(\theta) &= \nabla_\theta \mu_0^T r_\pi
+	\nabla_\theta J(\theta) &= \nabla_\theta \mu_0^T V_\pi
 	\\ &= \mu_0^T \nabla_\theta \gamma P_\pi V_\pi
 	\\ &= \mu_0^T (I - \gamma P_\pi)^{-1} (\nabla_\theta r_\pi + \gamma (\nabla_\theta P_\pi) V_\pi)
 	\\ &= \mu_\pi^T (\nabla_\theta r_\pi + \gamma (\nabla_\theta P_\pi) r_\pi)
-	\\ 
-	\\ &= \sum \mu_\theta(s) \nabla_\theta\pi(a|s) Q(s,a)
-	\\ &= \sum \mu_\theta(s) \pi(a|s) \nabla_\theta\log\pi(a|s) Q(s,a).
+	\\ &\equiv \sum\nolimits_i d^\pi(s_i) \nabla_\theta\pi(a|s_i) Q(s_i,a)
+	\\ &= \sum\nolimits_i d^\pi(s_i) \pi(a|s_i) \nabla_\theta\log\pi(a|s_i) Q_\pi(s_i,a).
 \end{align*}
 Where we used $\nabla_\theta \pi_\theta(a|s) = \pi_\theta(a|s)\nabla_\theta\log\pi_\theta(a|s)$, obtained from the likelihood ratio, which gives us the likelihood-ratio gradient,
 \begin{equation}
-	\nabla_\theta J(\theta) = \mathbb{E}_{\pi_\theta}\left[\nabla_\theta{\log\pi_\theta(a|s)}Q_\pi(s,a)\right].
+	\nabla_\theta J(\theta) = \mathbb{E}_{\pi}\left[\nabla_\theta{\log\pi_\theta(a|s)}Q_\pi(s,a)\right].
 	\label{eqn:like-grad}
 \end{equation}
 intuitively meaning we should to increase the probability of actions that lead to higher Q-values.
