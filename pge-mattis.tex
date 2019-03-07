@@ -315,42 +315,29 @@ The Fisher information matrix represents the certainty we have on our estimate o
   F_\theta = \int_\mathbb{S} d^\pi(s) \int_\mathbb{A} \pi_\theta(a|s) \nabla_\theta \log{\pi_\theta(a|s)} \nabla_\theta \log{\pi_\theta(a|s)}^T dads.
   \label{eqn:F}
 \end{equation}
-When we recall the definition \eqref{eqn:like-grad} of likelihood-ratio gradients, we see that setting $\hat{Q}(s,a) := \nabla_\theta \log \pi(a|s)^T w$, we get
+Using a value function estimator and calculating the natural gradient, we get the natural policy gradient algorithm (NPG) \cite{NIPS2017_7233}.
+But, if we recall the definition \eqref{eqn:like-grad} of likelihood-ratio gradients, we see that setting $\hat{Q}(s,a) := \nabla_\theta \log \pi(a|s)^T w$, we get
 \begin{equation}
   \nabla_\theta J(\theta) = \int_\mathbb{S} {p(s|\theta) \int_\mathbb{A} \pi_\theta(a|s) \nabla_\theta \log \pi(a|s) {\nabla_\theta \log \pi(a|s)}^T dads}\ w \equiv F_\theta w.
   \label{eqn:J-equals-F}
 \end{equation}
-
 From \eqref{eqn:nat-grad}, \eqref{eqn:F}, and \eqref{eqn:J-equals-F}, it follows that
 \begin{equation}
   \widetilde{\nabla}_\theta J(\theta) = F^{-1}_\theta \nabla_\theta J(\theta) = F_\theta^{-1} F_\theta w = w.
 \end{equation}
 Thus, this approach does not require an actual estimate of the Fisher information matrix, but only an estimate of $w$, with the update step according to $\theta_{k+1} = \theta_k + \alpha_k w$.
 
-Peters et al. \cite{4863} present this idea and suggest LSTD($\lambda$)-Q, a version of least-squares temporal difference learning  \cite{Boyan:1999:LTD:645528.657618}, as well as episodic natural actor-critic.
-
-However, the natural gradient is similarly used by TODO: reference other algos using natural gradient and remove them from conclusion (TRPO?)
-
-In the conclusion \ref{sec:outro}, we attempt to show the versatility and relevance in current research, and give some directions for further reading.
+Peters et al. \cite{4863} present this idea and suggest LSTD($\lambda$)-Q, a version of least-squares temporal difference learning  \cite{Boyan:1999:LTD:645528.657618}, as well as episodic natural actor-critic (eNAC).
 
 \section{Conclusion}
 \label{sec:outro}
 
-TODO less references and stuff...
-
 In this paper, we have introduced policy gradient methods as a class of reinforcement learning algorithms. 
 We show why policy gradient methods are effective in these environments, and we give some intuitions about the concept. 
-Further, we show the core elements of policy gradient methods, and we discuss some intricacies that they bring, and some research development in the attempts of improving the efficiency and stability of policy gradients.
+Further, we show the core elements of policy gradient methods, discuss some intricacies the estimation of the policy gradient brings, and follow the research development in the attempts of improving the efficiency and stability of policy gradients.
+We show that we can reuse value-estimation approaches in actor-critic settings to improve gradient estimate through better policy evaluation.
+This lead to the introduction of the natural gradient as a way to iterate through policy space instead of parameter space, which improves sample efficiency, especially when the gradient in parameter space is very small, i.e., if there is a plateau.
 
-There are many possibilities for improvement as it can be seen as a very modularized and flexible. 
-We find that the theoretical basis for policy gradient focused approaches reaches far back with some fundamental algorithms like Levenberg-Marquardt \cite{levenbergmarquardt1978}, and the first presentation of REINFORCE \cite{Williams92simplestatistical}. 
-Policy gradient methods were shown to be increasingly potent by authors such as Sutton \cite{Sutton:1999:PGM:3009657.3009806}, and still provide space for a lot of new work being published. 
-Algorithms such as the aforementioned Natural Actor-Critic \cite{4863} have been showing some of their potentials, but even so potential areas of improvement. 
-Schulman et al. \cite{DBLP:journals/corr/SchulmanMLJA15} present a form of advantage estimation using $\gamma$ as a parameter for bias-variance trade-off. 
-Fellows et al. \cite{fellows:icml18} use Fourier analysis to analytically improve policy gradients. 
-Abdolmaleki et al. \cite{abdolmaleki2018maximum} introduce MPO, an off-policy algorithm using expectation maximization, related to the approach of TRPO \cite{pmlr-v37-schulman15}. 
-Yet a different approach is given by Zhang et al. \cite{DBLP:journals/corr/abs-1808-03030}, who formulate policy optimization as a Wasserstein gradient flow problem, which moves into a Wasserstein manifold in the distribution space. 
-This is comparable to approaches by Abdolmaleki et al. \cite{NIPS2015_5672}, which introduces a bound on the Kullback-Leibler divergence during policy search. 
 From the developments in recent research, it is fair to say that policy gradient methods play a major role in reinforcement learning. 
 
 \bibliographystyle{spmpsci}
