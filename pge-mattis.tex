@@ -192,7 +192,7 @@ Approximating $Q_\pi(s,a)$ by an unbiased estimator $f_w(s_t, a_t) \equiv \hat{Q
 
 \paragraph{Episode-based updates.} 
 A very general optimization approach to this optimization problem are episodic algorithms. 
-We take a search distribution $p(\theta|\omega)$ over the parameter space of the policy class $\pi$ of the acting policy, and sample policies from that distribution. 
+We take a search distribution $p(\theta|\omega)$ over the parameter space of the policy class $\pi$, and sample acting policies from that distribution. 
 The policy class $\pi$ is most often chosen deterministic. 
 Using these policies, we sample trajectories $\tau$, and update the search policy using the returns of our sampled roll-outs
 \begin{equation}
