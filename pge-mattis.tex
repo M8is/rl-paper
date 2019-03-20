@@ -148,14 +148,15 @@ Finally, we define $V_\pi = \left[ V_\pi(s_0), V_\pi(s_1), \ldots \right]^T$, fr
 	\underset{\theta}{\text{max}}\ J(\theta) &= \mu_0^T V_\pi \\
 	\text{s.t.}\ V_\pi &= r_\pi + \gamma P_\pi V_\pi . \nonumber
 \end{align}
-We derive 
+Since $\mu_0^T$ does not depend on $\theta$, it is obvious that 
 \begin{align*}
-	\nabla_\theta J(\theta) &= \nabla_\theta \mu_0^T V_\pi = \mu_0^T \nabla_\theta V_\pi
+	\nabla_\theta J(\theta) &= \nabla_\theta \mu_0^T V_\pi = \mu_0^T \nabla_\theta V_\pi.
 \end{align*}
 We can replace $\nabla_\theta V_\pi$ using
 \begin{align*}
-	\nabla_\theta V_\pi &= \nabla_\theta r_\pi + \gamma (\nabla_\theta P_\pi) V_\pi + \gamma P_\pi \nabla_\theta V_\pi
-	\\ (I-\gamma P_\pi) \nabla_\theta V_\pi &= \nabla_\theta r_\pi + (\nabla_\theta P_\pi) V_\pi
+	\nabla_\theta V_\pi &= \nabla_\theta \left( r_\pi + \gamma P_\pi V_\pi \right)
+	\\ \nabla_\theta V_\pi &= \nabla_\theta r_\pi + \gamma (\nabla_\theta P_\pi) V_\pi + \gamma P_\pi \nabla_\theta V_\pi
+	\\ (I-\gamma P_\pi) \nabla_\theta V_\pi &= \nabla_\theta r_\pi + \gamma (\nabla_\theta P_\pi) V_\pi
 	\\ \nabla_\theta V_\pi &= (I - \gamma P_\pi)^{-1} (\nabla_\theta r_\pi + \gamma (\nabla_\theta P_\pi) V_\pi), 
 \end{align*}
 and find that
