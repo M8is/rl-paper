@@ -71,7 +71,7 @@ Since this is the core problem of policy gradient methods, it is also the main t
 In section \ref{sec:prel}, we give some preliminaries and describe the problem setup in detail. 
 In section \ref{sec:pge}, we discuss different approaches to estimate the policy gradient. 
 Using our insights from section \ref{sec:pge}, we derive the actor-critic framework in section \ref{sec:ac}, which harnesses value-function estimation for improved gradient updates. 
-Then, in section \ref{sec:natural}, we introduce some gradient ascent methods that build on the approaches given in \ref{sec:pge}, refining the gradient estimation by Fisher's information matrix to get the natural gradient. 
+Then, in section \ref{sec:natural}, we introduce some gradient-ascent methods that build on the approaches given in \ref{sec:pge}, refining the gradient estimation by Fisher's information matrix to get the natural gradient. 
 Finally, in section \ref{sec:outro}, we give a conclusion of the reviewed approaches, and discuss potential areas of improvement.
 
 \section{Preliminaries}
@@ -172,7 +172,6 @@ which we can take back into the gradient equation
 	\\ &\equiv \sum\nolimits_{i,j} \mu(s_i) \nabla_\theta\pi(a_j|s_i) Q_\pi(s_i,a_j) \label{eqn:likelihood-equiv}
 	\\ &= \sum\nolimits_{i,j} \mu(s_i) \pi(a_j|s_i) \nabla_\theta\log\pi(a_j|s_i) Q_\pi(s_i,a_j). \nonumber
 \end{align}
-
 The equivalence in \eqref{eqn:likelihood-equiv} comes from the observation that $\nabla_\theta \pi(a|s)$ is distributed over the addition $\nabla_\theta r_\pi + \gamma (\nabla_\theta P_\pi) V_\pi$.
 When we take out this common factor, $Q_\pi(s,a)$ remains.
 Then, we used $\nabla_\theta \pi(a|s) = \pi(a|s)\nabla_\theta\log\pi(a|s)$, obtained from the likelihood ratio $\nabla_\theta \log p(x|\theta) = \frac{\nabla_\theta p(x|\theta)}{p(x|\theta)}$. 
@@ -272,7 +271,12 @@ Given this definition, we can already say that the algorithms presented at the e
 
 The critic estimates a state-action value function as defined in \eqref{eqn:q}. 
 Sutton et al. \cite{Sutton:1999:PGM:3009657.3009806}, and Konda et al. \cite{Konda:2003:AA:942271.942292} find that the estimation $f_w^\pi(s,a) \approx Q_\pi(s,a)$ does not affect the unbiasedness of the gradient estimate under some restrictions. 
-Specifically, this holds for $f_w^\pi(s,a) = {\nabla_\theta \log\pi(a|s)}^T w$, thus $f_w^\pi(s,a)$ being a linear function parameterized by the vector $w$.
+Specifically, this holds for 
+\begin{equation}
+	f_w^\pi(s,a) = {\nabla_\theta \log\pi(a|s)}^T w,
+	\label{eqn:compatible-approximator}
+\end{equation}
+thus $f_w^\pi(s,a)$ being a linear function parameterized by the vector $w$.
 Sutton et al. \cite{Sutton:1999:PGM:3009657.3009806} call this estimator compatible.
 This guarantees that the function estimator does not cause divergence, and really enables recent research in reinforcement learning for continuous control problems, e.g., in humanoid robotics.
 
@@ -282,7 +286,7 @@ Traditionally, the improvement is often done by Monte-Carlo sampling as in REINF
   \label{eqn:td-error}
 \end{equation}
 
-However, Sutton et al. \cite{1993b} find that this is only guaranteed to be unbiased, if $\int_\mathbb{A}{\pi(s,a)f_w(s,a)da} = 0$ for each state. 
+However, Sutton et al. \cite{1993b} find that this is only guaranteed to be unbiased, if $\int_\mathbb{A}{\pi(s,a)f_w(s,a)da} = 0, \forall s \in \mathbb{S}$. 
 Given this assumption, the function estimator $f_w$ is limited to an advantage function \eqref{eqn:adv}, which requires bootstrapping for $V_\pi(s,a)$. 
 If we use temporal difference in this context, we run into a problem, as \eqref{eqn:td-error} subtracts $\hat{V}_\pi(s_t)$, meaning we would only learn immediate rewards \cite{Peters_IICHR_2003}. 
 This would render the process biased. 
@@ -296,7 +300,7 @@ An approach to solve this bootstrapping problem is to rewrite the Bellman Equati
   Q_\pi(s,a) = A_\pi(s,a) + V_\pi(s) &= r(s,a) + \gamma \int_\mathbb{S} p(s'|s,a)V_\pi(s')ds', \\
   \nabla_\theta \log \pi(a_t|s_t)^T w + \phi(s_t)^T v &= r(s_t,a_t) + \gamma \phi(s_{t+1})^T v + \epsilon(s_t,a_t,s_{t+1}).
 \end{align}
-which gives involves only linear equations to solve. \cite{4863} 
+which gives involves only linear equations to solve \cite{4863}.
 
 With these insights in mind, section \ref{sec:natural} presents the natural gradient, a refined type of gradient which has a convenient fit in the actor-critic setting we just established.
 
@@ -327,7 +331,7 @@ The Fisher information matrix represents the certainty we have on our estimate o
   \label{eqn:F}
 \end{equation}
 Using a value function estimator and calculating the natural gradient, we get the natural policy gradient algorithm (NPG) \cite{NIPS2017_7233}.
-But, if we recall the definition \eqref{eqn:like-grad} of likelihood-ratio gradients, we see that setting $\hat{Q}(s,a) := \nabla_\theta \log \pi(a|s)^T w$, we get
+But, if we recall the definition \eqref{eqn:like-grad} of likelihood-ratio gradients, and the compatible function approximator from \eqref{eqn:compatible-approximator}, we get
 \begin{equation}
   \nabla_\theta J(\theta) = \int_\mathbb{S} {d^\pi(s) \int_\mathbb{A} \pi(a|s) \nabla_\theta \log \pi(a|s) {\nabla_\theta \log \pi(a|s)}^T dads}\ w \equiv F_\theta w.
   \label{eqn:J-equals-F}
