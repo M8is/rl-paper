@@ -19,14 +19,14 @@ stroke
 grestore
 \end{filecontents*}
 \RequirePackage{fix-cm}
-\documentclass[draft]{svjour3}
+\documentclass[final]{svjour3}
 \smartqed
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
-\usepackage[final]{graphicx}
+\usepackage{graphicx}
 \graphicspath{ {./images/} }
 \usepackage{amsmath,amssymb}
-\usepackage[final]{hyperref}
+\usepackage{hyperref}
 \usepackage{tikz}
 \usepackage{environ}
 \usetikzlibrary{shapes,arrows,positioning,calc}
@@ -87,7 +87,7 @@ We assume a Markov Decision Process (MDP), meaning the probability distribution 
 	p(s_{t+1}|s_t,a_t)=p(s_{t+1}|s_{0:t},a_{0:t}).
 \end{equation}
 Where we define $i:j$ with $i,j \in \mathbb{N}, i < j$ as an index over all integers from $i$ to $j$, i.e., $s_{i:j} \equiv s_i, s_{i+1}, \dots, s_j$. 
-We assume no additional prior knowledge about the environment, thus we assume the probability of a trajectory is 
+We assume no additional prior knowledge about the environment, meaning we assume the probability of a trajectory is 
 \begin{equation}
 	p_\pi(\tau) = \mu_0(s_0) \prod_{t=0}^{T-1} p(s_{t+1}|s_t, a_t) \pi(a_t|s_t).
 \end{equation}
@@ -95,19 +95,19 @@ We assume no additional prior knowledge about the environment, thus we assume th
 The most frequently used policy classes in policy gradient approaches are Gibbs policies $\pi(a|s) = \frac{\exp(\phi(s,a)^T\theta)}{\sum_b \exp(\phi(s,b)^T\theta)}$ \cite{Sutton:1999:PGM:3009657.3009806,Bagnell2004LearningD} for discrete problems, and Gaussian policies $\pi(a|s) = \mathcal{N}(\phi(s,a)^T\theta_1,\theta_2)$ for continuous problems, where $\theta_2$ is an exploration parameter \cite{Williams92simplestatistical,peter:article:1996}, and $\phi(s,a)$ is the vector of basis functions on the state-action pair.
 
 \paragraph{Policy gradient.} 
-Our goal with respect to episodes is still to maximize the expectation of the total reward, also called expected return. 
+Our goal with respect to episodes is to maximize the expectation of the total reward, also called expected return. 
 The total reward in the horizon $T$ is $\sum_{t=0}^{T} r_{t}$. 
 We introduce a discount factor $\gamma \in [0,1)$.
-Intuitively, this reflects the idea that the relevance of later actions declines, and ensures that the return is always finite, even for the infinite horizon $T \to \infty$. 
+Intuitively, this reflects the idea that the relevance of later actions declines, and ensures that the return is finite, even for the infinite horizon $T \to \infty$. 
 The discounted total reward is 
-
 \begin{equation}
   \mathcal{R}^\tau \equiv \mathcal{R}_0^T := \sum_{t=0}^{T} \gamma^t r_t.
   \label{eqn:acc-reward}
 \end{equation}
 
 Since we have only limited knowledge of the performance of the policy, we need to approximate an optimal policy by estimating a gradient. 
-Thus, we search $\nabla_\theta J(\theta) := \nabla_\theta \mathbb{E}_{p_\pi(\tau)}\left[\mathcal{R}^\tau\right]$, to make a policy gradient step according to $\theta_{k+1} = \theta_k + \alpha_k \nabla_\theta J(\theta)$, where $\alpha_k$ denotes a learning rate. \ref{sec:pge} shows how we can estimate $J(\theta)$.
+Thus, we search $\nabla_\theta J(\theta) := \nabla_\theta \mathbb{E}_{p_\pi(\tau)}\left[\mathcal{R}^\tau\right]$, to make a policy gradient step according to $\theta_{k+1} = \theta_k + \alpha_k \nabla_\theta J(\theta)$, where $\alpha_k$ denotes a learning rate. 
+Section \ref{sec:pge} shows how we can estimate $J(\theta)$.
 
 \section{Policy Gradient Estimation}
 \label{sec:pge}
@@ -129,28 +129,25 @@ Given we know the actual value, i.e. the expected return we will get starting fr
 	V^{\pi}(s_t) := \mathbb{E}_{\substack{s_{t+1:h} \\ a_{t:h}}}\left[\mathcal{R}_t^T\right].
 	\label{eqn:v}
 \end{equation}
-
-As we will see, this function also gives us the true gradient of $J(\theta)$, though in general we need to estimate it. 
 In addition to the value function, we also define the state-action value function, often called Q-function. 
 Instead of the expected accumulated reward starting from state $s_t$, this function gives the expected accumulated reward given an action $a_t$ is selected in state $s_t$, 
 \begin{equation}
 	Q^{\pi}(s_t, a_t) := \mathbb{E}_{\substack{s_{t+1:h} \\ a_{t+1:h}}}\left[\mathcal{R}_t^T\right].
 	\label{eqn:q}
 \end{equation}
-
+As we will see, this function also gives us the true gradient of $J(\theta)$, though in general we need to estimate it. 
 Using the value function, and the Q-function, we can derive a better estimate of the policy gradient.
 
 \paragraph{Likelihood-ratio gradients.} 
 For this derivation, we will change the perspective a bit, requiring some additional definitions. 
-We define ${\mu_\pi}_i = \sum_{t=0}^{\infty} \gamma^t p(s_t=s_i | s_0, \pi)$ \cite{puterman2014markov} as the state distribution, though it does not sum up to one without normalization, which is easily done by multiplying with $(1-\gamma)$. 
+We define ${\mu_\pi}_i = \sum_{t=0}^{\infty} \gamma^t p(s_t=s_i | s_0, \pi)$ \cite{puterman2014markov} as the discounted state distribution, though it does not sum up to one without normalization, which can be achieved by multiplying with $(1-\gamma)$. 
 Note that $\mu_\pi$ is equivalent to the discounted state visit count $d^\pi$ introduced by Sutton et al. \cite{Sutton:1999:PGM:3009657.3009806}.
 Further, we define $P_\pi$ as the transition matrix, i.e. ${P_\pi}_{i,j}=\sum\nolimits_k p(s_j|s_i,a_k)\pi(a_k|s_i)$, $r_\pi$ as the mean rewards for all states given by ${r_\pi}_i = \sum_j r(s_i,a_j)\pi(a_j|s_i)$, and $\mu_0 = \left[\mu_0(s_0),\mu_0(s_1),\ldots\right]^T$ as a vector representing the initial state distribution.
-From which it follows that $V_\pi = \mu_\pi r_\pi$, so we can reformulate the problem as 
+Finally, we define $V_\pi = \left[ V_\pi(s_0), V_\pi(s_1), \ldots \right]^T$, from which it follows that $V_\pi = \mu_\pi r_\pi$, so we can reformulate the problem as 
 \begin{align}
 	\underset{\theta}{\text{max}}\ J(\theta) &= \mu_0^T V_\pi \\
 	\text{s.t.}\ V_\pi &= r_\pi + \gamma P_\pi V_\pi . \nonumber
 \end{align}
-Where $V_\pi = \left[ V_\pi(s_0), V_\pi(s_1), \ldots \right]^T$. 
 We derive 
 \begin{align*}
 	\nabla_\theta J(\theta) &= \nabla_\theta \mu_0^T V_\pi = \mu_0^T \nabla_\theta V_\pi
@@ -178,17 +175,18 @@ which we can take back into the gradient equation
 The equivalence in \eqref{eqn:likelihood-equiv} comes from the observation that $\nabla_\theta \pi(a|s)$ is distributed over the addition $\nabla_\theta r_\pi + \gamma (\nabla_\theta P_\pi) V_\pi$.
 When we take out this common factor, $Q_\pi(s,a)$ remains.
 Then, we used $\nabla_\theta \pi(a|s) = \pi(a|s)\nabla_\theta\log\pi(a|s)$, obtained from the likelihood ratio $\nabla_\theta \log p(x|\theta) = \frac{\nabla_\theta p(x|\theta)}{p(x|\theta)}$. 
-This gives us the likelihood-ratio gradient,
+This gives us the likelihood-ratio gradient
 \begin{equation}
-	\nabla_\theta J(\theta) = \mathbb{E}_{\substack{\ s \sim \mu_\pi \\a \sim \pi}} \Big[\nabla_\theta{\log\pi(a|s)}Q_\pi(s,a)\Big].
+	\nabla_\theta J(\theta) = \mathbb{E}_{\substack{\ s \sim \mu_\pi \\a \sim \pi}} \Big[\nabla_\theta{\log\pi(a|s)}Q_\pi(s,a)\Big],
 	\label{eqn:like-grad}
 \end{equation}
 intuitively meaning we should to increase the probability of actions that lead to higher Q-values.
+This formulation enables us to calculate the gradient $\nabla_\theta J(\theta)$, while directly taking advantage of the MDP structure in the form of $Q_\pi(s,a)$.
 
 Obviously, we do not have the true $Q_\pi(s,a)$, thus we need to approximate it by $\hat{Q}_\pi(s,a)$. 
-We draw $a \sim \pi(a|s)$, starting in state $s_0 \sim p(s_0)$ and match a function estimator to our observations.
-It is shown that for $\lim_{k\to\infty}\alpha_k = 0$, and $\sum_{k=0}^\infty \alpha_k$ we are guaranteed to converge to a local optimum \cite{Sutton:1999:PGM:3009657.3009806}.
-Approximating $Q_\pi(s,a)$ by an unbiased estimator $f_w(s_t, a_t) \equiv \hat{Q}_\pi(s_t, a_t)$, Sutton et al. \cite{Sutton:1999:PGM:3009657.3009806} show that using this function approximation we will converge to the real local optimum.
+In all of the following sections, when we say that we sample an episode, we mean to draw $a \sim \pi(a|s)$, starting in state $s_0 \sim p(s_0)$ and match a function estimator to our observations.
+Following this procedure, it is shown that for $\lim_{k\to\infty}\alpha_k = 0$, and $\sum_{k=0}^\infty \alpha_k$ we are guaranteed to converge to a local optimum \cite{Sutton:1999:PGM:3009657.3009806}.
+Approximating $Q_\pi(s,a)$ by an unbiased estimator $f_w(s_t, a_t) \equiv \hat{Q}_\pi(s_t, a_t)$, Sutton et al. \cite{Sutton:1999:PGM:3009657.3009806} show that using this function approximation we will converge to the true local optimum of $J(\theta)$.
 
 \paragraph{Episode-based updates.} 
 A very general optimization approach to this optimization problem are episodic algorithms. 
@@ -198,7 +196,7 @@ Using these policies, we sample trajectories $\tau$, and update the search polic
 \begin{equation}
 	\nabla_\theta J(\theta) \approx \sum_{t=0}^T \nabla_\omega \log p(\theta|\omega) \mathcal{R}_t^T.
 \end{equation}
-The resulting algorithms are black-box optimizers, and as such are largely applicable, but can not use the problem structure and have a lot of variance.
+The resulting algorithms are black-box optimizers, and as such are largely applicable, but can not use any temporal information and have a lot of variance.
 Given these insights, we require a way to design algorithms that improve the acting policy stepwise by observing each interaction with the environment.
 
 \paragraph{Step-based updates.}
@@ -212,7 +210,7 @@ This is sometimes also called Monte-Carlo gradient estimation.
 However, given $r_t > 0, \forall t=0,\dots,h$, we can only increase action probabilities. 
 Obviously, we normalize to ensure $\forall s \in \mathbb{S}: \int_\mathbb{A}{\pi(a|s)da} = 1$. 
 This means actions can only become less probable in relation to other actions. 
-We find that this introduces more variance when learning from samples \cite{Sutton:1999:PGM:3009657.3009806}. 
+We find that this introduces more variance when learning from samples \cite{Sutton:1999:PGM:3009657.3009806}, and by that defeats the purpose of why we thought of this approach in the first place. 
 One way to counter the variance is to introduce the baseline $b_\tau$.
 Peters et al. \cite{4867} find that an estimate of the optimal baseline can be calculated by
 \begin{equation}
@@ -222,8 +220,9 @@ Peters et al. \cite{4867} find that an estimate of the optimal baseline can be c
 		\right\rangle}
 		{\left\langle
 			\left(\sum_{t=0}^T \nabla_\theta \log\pi(a_t|s_t) \right)^2
-		\right\rangle}
+		\right\rangle},
 \end{equation}
+which does not affect the unbiasedness of the estimate.
 
 Another common way to use this baseline is to use the value function, which gives us the so-called advantage function
 
@@ -244,9 +243,11 @@ For actor-critic approaches, we separate these steps from the actor component by
 This means, the actor consists only of the policy, while the critic is focused on estimating a score for the actions taken. 
 By that concept, observations of the environment are given to the actor only to decide the next action, and to the critic only to improve its function estimation with the respective rewards. 
 Figure \ref{fig:ac} shows the general structure of an actor-critic algorithm.
+Given this definition, we can already say that the algorithms presented at the end of section \ref{sec:pge} are actor-critic approaches.
 
 \tikzset{block/.style= {draw, rectangle, align=center, minimum height=2em, minimum width=3cm}}
 \begin{figure}
+  \begin{center}
   \begin{tikzpicture}[auto, node distance=2cm,>=latex']
     \node [block, name=env, minimum width=6cm] (env) {Environment};
     \node [block, above of=env, node distance=1.5cm] (critic) {Critic \\ $\hat{Q}_\pi(s,a)$};
@@ -264,22 +265,25 @@ Figure \ref{fig:ac} shows the general structure of an actor-critic algorithm.
     \draw [-, swap, pos=0.14] ($(env.north west)!0.15!(env.north)$) |- node{Observation} (critic.west);
     \draw [-, swap, pos=0.95] (actor.east) -| node{Action} ($(env.north east)!0.15!(env.north)$);
   \end{tikzpicture}
+  \end{center}
   \caption{A visualization inspired by Kimura et al. \cite{Kimura1998AnAO}, showing the actor-critic framework.} \label{fig:ac}
 \end{figure}
 
 The critic estimates a state-action value function as defined in \eqref{eqn:q}. 
-\cite{Sutton:1999:PGM:3009657.3009806}, and \cite{Konda:2003:AA:942271.942292} find that the estimation $f_w^\pi(s,a) \approx Q_\pi(s,a)$ does not affect the unbiasedness of the gradient estimate under some restrictions. 
+Sutton et al. \cite{Sutton:1999:PGM:3009657.3009806}, and Konda et al. \cite{Konda:2003:AA:942271.942292} find that the estimation $f_w^\pi(s,a) \approx Q_\pi(s,a)$ does not affect the unbiasedness of the gradient estimate under some restrictions. 
 Specifically, this holds for $f_w^\pi(s,a) = {\nabla_\theta \log\pi(a|s)}^T w$, thus $f_w^\pi(s,a)$ being a linear function parameterized by the vector $w$.
+Sutton et al. \cite{Sutton:1999:PGM:3009657.3009806} call this estimator compatible.
 This guarantees that the function estimator does not cause divergence, and really enables recent research in reinforcement learning for continuous control problems, e.g., in humanoid robotics.
 
 Traditionally, the improvement is often done by Monte-Carlo sampling as in REINFORCE \eqref{eqn:reinforce}, or using temporal difference (TD) \cite{Sutton1988}, i.e., we use the temporal difference between the critic's estimations 
 \begin{equation}
   \delta(s_t) = r_t + \gamma \hat{V}_\pi(s_{t+1}) - \hat{V}_\pi(s_t).
+  \label{eqn:td-error}
 \end{equation}
 
-However, Sutton et al. \cite{1993b} find that this is only guaranteed to be unbiased, if $\int_\mathbb{S}{\pi(s,a)f_w(s,a)da} = 0$ for each state. 
+However, Sutton et al. \cite{1993b} find that this is only guaranteed to be unbiased, if $\int_\mathbb{A}{\pi(s,a)f_w(s,a)da} = 0$ for each state. 
 Given this assumption, the function estimator $f_w$ is limited to an advantage function \eqref{eqn:adv}, which requires bootstrapping for $V_\pi(s,a)$. 
-If we use temporal difference in this context, we run into a problem, as \eqref{eqn:adv} subtracts $\hat{V}_\pi(s_t)$, meaning we would only learn immediate rewards \cite{Peters_IICHR_2003}. 
+If we use temporal difference in this context, we run into a problem, as \eqref{eqn:td-error} subtracts $\hat{V}_\pi(s_t)$, meaning we would only learn immediate rewards \cite{Peters_IICHR_2003}. 
 This would render the process biased. 
 Sutton et al. \cite{Sutton:1999:PGM:3009657.3009806} and Konda et al. \cite{NIPS1999_1786} suggest estimating an action value function as in \eqref{eqn:q}. 
 We can approximate this $f_w^\pi$ by least-squares optimization over multiple $\hat{Q}_\pi(s,a)$ obtained from roll-outs. 
@@ -288,8 +292,8 @@ This comes from the realization, that we use only a subspace of the actual actio
 One can compare this to approximating a parabola by a line, whereby the approximation changes wildly depending on which part of the parabola is in the training data. 
 An approach to solve this bootstrapping problem is to rewrite the Bellman Equation using \eqref{eqn:adv} and \eqref{eqn:q} with $A_\pi(s,a) = f_w^\pi(s,a)$, $V_\pi(s) = \phi(s)^T v$, and a zero-mean error term $\epsilon(s_t,a_t,s_{t+1})$, we get
 \begin{align}
-  Q_\pi(s,a) = A_\pi(s,a) + V_\pi(s) &= r(s,a) + \gamma \int_\mathbb{S} p(s'|s,a)V_\pi(s')ds' \\
-  \nabla_\theta \log \pi(a_t|s_t)^T w + \phi(s_t)^T v &= r(s_t,a_t) + \gamma \phi(s_{t+1})^T v + \epsilon(s_t,a_t,s_{t+1})
+  Q_\pi(s,a) = A_\pi(s,a) + V_\pi(s) &= r(s,a) + \gamma \int_\mathbb{S} p(s'|s,a)V_\pi(s')ds', \\
+  \nabla_\theta \log \pi(a_t|s_t)^T w + \phi(s_t)^T v &= r(s_t,a_t) + \gamma \phi(s_{t+1})^T v + \epsilon(s_t,a_t,s_{t+1}).
 \end{align}
 which gives involves only linear equations to solve. \cite{4863} 
 
@@ -327,7 +331,6 @@ But, if we recall the definition \eqref{eqn:like-grad} of likelihood-ratio gradi
   \nabla_\theta J(\theta) = \int_\mathbb{S} {d^\pi(s) \int_\mathbb{A} \pi(a|s) \nabla_\theta \log \pi(a|s) {\nabla_\theta \log \pi(a|s)}^T dads}\ w \equiv F_\theta w.
   \label{eqn:J-equals-F}
 \end{equation}
-Sutton et al. \cite{Sutton:1999:PGM:3009657.3009806} call this estimator compatible.
 
 From \eqref{eqn:nat-grad}, \eqref{eqn:F}, and \eqref{eqn:J-equals-F}, it follows that
 \begin{equation}
@@ -344,7 +347,7 @@ In this paper, we have introduced policy gradient methods as a class of reinforc
 We show why policy gradient methods are effective in these environments, and we give some intuitions about the concept. 
 Further, we show the core elements of policy gradient methods, discuss some intricacies the estimation of the policy gradient brings, and follow the research development in the attempts of improving the efficiency and stability of policy gradients.
 We show that we can reuse value-estimation approaches in actor-critic settings to improve gradient estimate through better policy evaluation.
-This leads to the introduction of the natural gradient as a way to iterate through policy space instead of parameter space, which improves sample efficiency, especially when the gradient in parameter space is very small, i.e., if there is a plateau.
+This leads to the introduction of the natural gradient as a way to iterate through policy space instead of parameter space, which improves sample efficiency, especially when the gradient in parameter space is very small.
 
 From the developments in recent research, it is fair to say that policy gradient methods play a major role in reinforcement learning. 
 
