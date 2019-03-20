@@ -47,10 +47,10 @@ grestore
 
 The goal of policy gradient approaches is to find a policy in a given class of policies which maximizes the expected return.
 Given a differentiable model of the policy, we want to apply a gradient-ascent technique to reach the local optimum. 
-Gradient ascent is theoretically well researched.
+We mainly use gradient ascent, because it is theoretically well researched.
 The main issue is that the policy gradient with respect to the expected return is not available, thus we need to estimate it.
-For this reason, the biggest weakness of policy gradient algorithms is sample efficiency, as they tend to require on-policy data for the gradient estimate.
-Thus, most research is focused on finding algorithms with improved sample efficiency.
+As they also tend to require on-policy data for the gradient estimate, the biggest weakness of policy gradient algorithms is sample efficiency.
+For this reason, most research is focused on finding algorithms with improved sample efficiency.
 This paper provides a deep introduction to policy gradient that shows the development of policy gradient approaches, and should enable the reader to follow current research in the area. 
 
 \keywords{reinforcement learning \and policy gradients \and actor-critic \and natural gradient }
@@ -61,18 +61,18 @@ This paper provides a deep introduction to policy gradient that shows the develo
 
 Policy gradient methods are approaches to maximize the expected return in a Markov Decision Process (MDP). 
 Using a parameterized policy to decide the next action, they can easily incorporate prior domain knowledge, but require a lot of configuration to produce an effective agent for a specific environment. 
-Though they frequently require on-policy training and often converge slower. 
-In this paper, we focus on the computation of policy improvements, though we introduce the most common policy classes shortly.
-In this case, improvement means a step in the parameter space such that the policy under the new parameters will on average perform better than the old policy, i.e. improve its expected return. 
-Policy gradient estimation is the term we use to describe the process of computing the next step in parameter space. 
-The goal is to estimate the gradient of the policy with respect to the expected return. 
+Also, they frequently require on-policy training and a lot of samples to find a good policy. 
+In this paper, we focus on approaches to estimate the policy gradient, though we introduce the most common policy classes shortly.
+Policy improvement means a step in the parameter space such that the policy under the new parameters will on average perform better than the old policy, i.e. improve its expected return. 
+Policy gradient estimation is the term we use to describe the process of computing the direction in parameter space for a policy improvement. 
+Essentially, the goal is to estimate the gradient of the policy with respect to the expected return. 
 Since this is the core problem of policy gradient methods, it is also the main topic of this paper.
 
 In section \ref{sec:prel}, we give some preliminaries and describe the problem setup in detail. 
 In section \ref{sec:pge}, we discuss different approaches to estimate the policy gradient. 
 Using our insights from section \ref{sec:pge}, we derive the actor-critic framework in section \ref{sec:ac}, which harnesses value-function estimation for improved gradient updates. 
-Then, in section \ref{sec:natural}, we introduce some gradient-ascent methods that build on the approaches given in \ref{sec:pge}, refining the gradient estimation by Fisher's information matrix to get the natural gradient. 
-Finally, in section \ref{sec:outro}, we give a conclusion of the reviewed approaches, and discuss potential areas of improvement.
+Then, in section \ref{sec:natural}, we introduce some gradient-ascent methods that build on the approaches given in sections \ref{sec:pge} and \ref{sec:ac}, refining the gradient estimation by Fisher's information matrix to get the natural gradient. 
+Finally, in section \ref{sec:outro}, we summarize the contents presented this paper, and give a short conclusion.
 
 \section{Preliminaries}
 \label{sec:prel}
@@ -97,7 +97,7 @@ The most frequently used policy classes in policy gradient approaches are Gibbs 
 \paragraph{Policy gradient.} 
 Our goal with respect to episodes is to maximize the expectation of the total reward, also called expected return. 
 The total reward in the horizon $T$ is $\sum_{t=0}^{T} r_{t}$. 
-We introduce a discount factor $\gamma \in [0,1)$.
+We additionally introduce a discount factor $\gamma \in [0,1)$.
 Intuitively, this reflects the idea that the relevance of later actions declines, and ensures that the return is finite, even for the infinite horizon $T \to \infty$. 
 The discounted total reward is 
 \begin{equation}
@@ -119,12 +119,12 @@ A simple approach for gradient estimation is to choose a small $\delta\theta$, a
 \begin{equation}
 	\nabla_\theta J(\theta) \approx \frac{J(\theta+\delta\theta)J(\theta-\delta\theta)}{2\delta\theta}.
 \end{equation} 
-This can lend a good estimate of the gradient given a small $\delta$, and is generally called the symmetric derivative. 
+This can lend a good estimate of the gradient given a small $\delta \theta$, and is generally called the symmetric derivative. 
 However, finite-difference gradients suffer from the curse of dimensionality, and can require very small $\delta\theta$.
 Thus, finite-difference gradients only work well in specific scenarios, but should not be discarded due to simplicity.
 
 \paragraph{Value functions.} 
-Given we know the actual value, i.e. the expected return we will get starting from state $s_t$, this function can be used to evaluate the performance of our policy, and can be written as
+Given we know the actual value of a state, i.e. the expected return we will get starting from state $s_t$, this function can be used to evaluate the performance of our policy, and can be written as
 \begin{equation}
 	V^{\pi}(s_t) := \mathbb{E}_{\substack{s_{t+1:h} \\ a_{t:h}}}\left[\mathcal{R}_t^T\right].
 	\label{eqn:v}
@@ -270,7 +270,7 @@ Specifically, this holds for
 	\label{eqn:compatible-approximator}
 \end{equation}
 thus $f_w^\pi(s,a)$ being a linear function parameterized by the vector $w$.
-Sutton et al. \cite{Sutton:1999:PGM:3009657.3009806} call this estimator compatible.
+Sutton et al. \cite{Sutton:1999:PGM:3009657.3009806} call this a compatible function approximator.
 This guarantees that the function estimator does not cause divergence, and really enables recent research in reinforcement learning for continuous control problems, e.g., in humanoid robotics.
 
 Traditionally, the improvement is often done by Monte-Carlo sampling as in REINFORCE \eqref{eqn:reinforce}, or using temporal difference (TD) \cite{Sutton1988}, i.e., we use the temporal difference between the critic's estimations 
@@ -291,9 +291,10 @@ This would render the process biased.
 Sutton et al. \cite{Sutton:1999:PGM:3009657.3009806} and Konda et al. \cite{NIPS1999_1786} suggest estimating an action value function as in \eqref{eqn:q}. 
 We can approximate this $f_w^\pi$ by least-squares optimization over multiple $\hat{Q}_\pi(s,a)$ obtained from roll-outs. 
 However, Peters et al. \cite{4863} find that this approximation is highly reliant on the distribution of the training data. 
-This comes from the realization, that we use only a subspace of the actual action value function in $\hat{V}^\pi$, which is only a state value function. 
+This comes from the realization, that we use only a subspace of the actual action-value function in $\hat{V}^\pi$, which is only a state value function. 
 One can compare this to approximating a parabola by a line, whereby the approximation changes wildly depending on which part of the parabola is in the training data. 
-An approach to solve this bootstrapping problem is to rewrite the Bellman Equation using \eqref{eqn:adv} and \eqref{eqn:q} with $\hat{A}_\pi(s,a) = f_w^\pi(s,a)$, $\hat{V}_\pi(s) = \phi(s)^T v$, and a zero-mean error term $\epsilon(s_t,a_t,s_{t+1})$, we get
+An approach to solve this bootstrapping problem is to rewrite the Bellman Equation using \eqref{eqn:adv} and \eqref{eqn:q}.
+With $\hat{A}_\pi(s,a) = f_w^\pi(s,a)$, $\hat{V}_\pi(s) = \phi(s)^T v$, and a zero-mean error term $\epsilon(s_t,a_t,s_{t+1})$, we get
 \begin{align}
   \hat{Q}_\pi(s,a) = \hat{A}_\pi(s,a) + \hat{V}_\pi(s) &= r(s,a) + \gamma \int_\mathbb{S} p(s'|s,a)\hat{V}_\pi(s')ds', \\
   \nabla_\theta \log \pi(a_t|s_t)^T w + \phi(s_t)^T v &= r(s_t,a_t) + \gamma \phi(s_{t+1})^T v + \epsilon(s_t,a_t,s_{t+1}).
