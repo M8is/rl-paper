@@ -201,17 +201,17 @@ Given these insights, we require a way to design algorithms that improve the act
 
 \paragraph{Step-based updates.}
 The first class of algorithms developed to update a policy directly using a critic are called REINFORCE \cite{Williams92simplestatistical}.
-REINFORCE samples a complete episode, at which point we can calculate the actual state-action value by traversing backwards over the trajectory, and estimates:
+REINFORCE samples a complete episode, at which point we can calculate the actual state-action value by traversing backwards over the trajectory, and estimates
 \begin{equation}
 	\nabla_\theta J(\theta) \approx \nabla_\theta\log\pi(s) \left(Q(s_t,a_t) - b_\tau \right).
 	\label{eqn:reinforce}
 \end{equation}
 This is sometimes also called Monte-Carlo gradient estimation. 
-However, given $r_t > 0, \forall t=0,\dots,h$, we can only increase action probabilities. 
+However, given $b_\tau = 0, r_t > 0, \forall t=0,\dots,h$, we can only increase action probabilities. 
 Obviously, we normalize to ensure $\forall s \in \mathbb{S}: \int_\mathbb{A}{\pi(a|s)da} = 1$. 
 This means actions can only become less probable in relation to other actions. 
 We find that this introduces more variance when learning from samples \cite{Sutton:1999:PGM:3009657.3009806}, and by that defeats the purpose of why we thought of this approach in the first place. 
-One way to counter the variance is to introduce the baseline $b_\tau$.
+One way to counter the variance is to use an effective baseline $b_\tau$.
 Peters et al. \cite{4867} find that an estimate of the optimal baseline can be calculated by
 \begin{equation}
 	b_\tau = \frac
@@ -223,13 +223,6 @@ Peters et al. \cite{4867} find that an estimate of the optimal baseline can be c
 		\right\rangle},
 \end{equation}
 which does not affect the unbiasedness of the estimate.
-
-Another common way to use this baseline is to use the value function, which gives us the so-called advantage function
-
-\begin{equation}
-	A_{\pi}(s_t, a_t) := Q_{\pi}(s_t, a_t) - V_{\pi}(s_t).
-	\label{eqn:adv}
-\end{equation}
 
 Whenever we require estimating a value function for updating our policy, we can name the policy actor, and the estimated value function critic. 
 From this observation, we define a class of policy optimization methods called actor-critic methods in section \ref{sec:ac}.
@@ -287,8 +280,13 @@ Traditionally, the improvement is often done by Monte-Carlo sampling as in REINF
 \end{equation}
 
 However, Sutton et al. \cite{1993b} find that this is only guaranteed to be unbiased, if $\int_\mathbb{A}{\pi(s,a)f_w(s,a)da} = 0, \forall s \in \mathbb{S}$. 
-Given this assumption, the function estimator $f_w$ is limited to an advantage function \eqref{eqn:adv}, which requires bootstrapping for $V_\pi(s,a)$. 
-If we use temporal difference in this context, we run into a problem, as \eqref{eqn:td-error} subtracts $\hat{V}_\pi(s_t)$, meaning we would only learn immediate rewards \cite{Peters_IICHR_2003}. 
+Given this assumption, the function estimator $f_w$ is limited to approximating an advantage function
+\begin{equation}
+	f_w(s_t, a_t) \equiv \hat{A}_{\pi}(s_t, a_t) = \hat{Q}_{\pi}(s_t, a_t) - \hat{V}_{\pi}(s_t),
+	\label{eqn:adv}
+\end{equation} 
+which requires bootstrapping for $\hat{V}_\pi(s)$. 
+If we use temporal difference in this context, we run into a problem, as \eqref{eqn:adv} subtracts $\hat{V}_\pi(s_t)$, meaning we would only learn immediate rewards \cite{Peters_IICHR_2003}. 
 This would render the process biased. 
 Sutton et al. \cite{Sutton:1999:PGM:3009657.3009806} and Konda et al. \cite{NIPS1999_1786} suggest estimating an action value function as in \eqref{eqn:q}. 
 We can approximate this $f_w^\pi$ by least-squares optimization over multiple $\hat{Q}_\pi(s,a)$ obtained from roll-outs. 
