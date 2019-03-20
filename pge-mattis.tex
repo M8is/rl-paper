@@ -186,7 +186,7 @@ This formulation enables us to calculate the gradient $\nabla_\theta J(\theta)$,
 Obviously, we do not have the true $Q_\pi(s,a)$, thus we need to approximate it by $\hat{Q}_\pi(s,a)$. 
 In all of the following sections, when we say that we sample an episode, we mean to draw $a \sim \pi(a|s)$, starting in state $s_0 \sim p(s_0)$ and match a function estimator to our observations.
 Following this procedure, it is shown that for $\lim_{k\to\infty}\alpha_k = 0$, and $\sum_{k=0}^\infty \alpha_k$ we are guaranteed to converge to a local optimum \cite{Sutton:1999:PGM:3009657.3009806}.
-Approximating $Q_\pi(s,a)$ by an unbiased estimator $f_w(s_t, a_t) \equiv \hat{Q}_\pi(s_t, a_t)$, Sutton et al. \cite{Sutton:1999:PGM:3009657.3009806} show that using this function approximation we will converge to the true local optimum of $J(\theta)$.
+Approximating $Q_\pi(s,a)$ by an unbiased estimator $f_w^\pi(s_t, a_t) \equiv \hat{Q}_\pi(s_t, a_t)$, Sutton et al. \cite{Sutton:1999:PGM:3009657.3009806} show that using this function approximation we will converge to the true local optimum of $J(\theta)$.
 
 \paragraph{Episode-based updates.} 
 A very general optimization approach to this optimization problem are episodic algorithms. 
@@ -279,23 +279,23 @@ Traditionally, the improvement is often done by Monte-Carlo sampling as in REINF
   \label{eqn:td-error}
 \end{equation}
 
-However, Sutton et al. \cite{1993b} find that this is only guaranteed to be unbiased, if $\int_\mathbb{A}{\pi(s,a)f_w(s,a)da} = 0, \forall s \in \mathbb{S}$. 
-Given this assumption, the function estimator $f_w$ is limited to approximating an advantage function
+However, Sutton et al. \cite{1993b} find that this is only guaranteed to be unbiased, if $\int_\mathbb{A}{\pi(s,a)f_w^\pi(s,a)da} = 0, \forall s \in \mathbb{S}$. 
+Given this assumption, the function estimator $f_w^\pi$ is limited to approximating an advantage function
 \begin{equation}
-	f_w(s_t, a_t) \equiv \hat{A}_{\pi}(s_t, a_t) = \hat{Q}_{\pi}(s_t, a_t) - \hat{V}_{\pi}(s_t),
+	f_w^\pi(s_t, a_t) \equiv \hat{A}_{\pi}(s_t, a_t) = \hat{Q}_{\pi}(s_t, a_t) - \hat{V}_{\pi}(s_t),
 	\label{eqn:adv}
 \end{equation} 
-which requires bootstrapping for $\hat{V}_\pi(s)$. 
+which requires bootstrapping for $\hat{V}_\pi$. 
 If we use temporal difference in this context, we run into a problem, as \eqref{eqn:adv} subtracts $\hat{V}_\pi(s_t)$, meaning we would only learn immediate rewards \cite{Peters_IICHR_2003}. 
 This would render the process biased. 
 Sutton et al. \cite{Sutton:1999:PGM:3009657.3009806} and Konda et al. \cite{NIPS1999_1786} suggest estimating an action value function as in \eqref{eqn:q}. 
 We can approximate this $f_w^\pi$ by least-squares optimization over multiple $\hat{Q}_\pi(s,a)$ obtained from roll-outs. 
 However, Peters et al. \cite{4863} find that this approximation is highly reliant on the distribution of the training data. 
-This comes from the realization, that we use only a subspace of the actual action value function in $f_w^\pi$, which is only a state value function. 
+This comes from the realization, that we use only a subspace of the actual action value function in $\hat{V}^\pi$, which is only a state value function. 
 One can compare this to approximating a parabola by a line, whereby the approximation changes wildly depending on which part of the parabola is in the training data. 
-An approach to solve this bootstrapping problem is to rewrite the Bellman Equation using \eqref{eqn:adv} and \eqref{eqn:q} with $A_\pi(s,a) = f_w^\pi(s,a)$, $V_\pi(s) = \phi(s)^T v$, and a zero-mean error term $\epsilon(s_t,a_t,s_{t+1})$, we get
+An approach to solve this bootstrapping problem is to rewrite the Bellman Equation using \eqref{eqn:adv} and \eqref{eqn:q} with $\hat{A}_\pi(s,a) = f_w^\pi(s,a)$, $\hat{V}_\pi(s) = \phi(s)^T v$, and a zero-mean error term $\epsilon(s_t,a_t,s_{t+1})$, we get
 \begin{align}
-  Q_\pi(s,a) = A_\pi(s,a) + V_\pi(s) &= r(s,a) + \gamma \int_\mathbb{S} p(s'|s,a)V_\pi(s')ds', \\
+  \hat{Q}_\pi(s,a) = \hat{A}_\pi(s,a) + \hat{V}_\pi(s) &= r(s,a) + \gamma \int_\mathbb{S} p(s'|s,a)\hat{V}_\pi(s')ds', \\
   \nabla_\theta \log \pi(a_t|s_t)^T w + \phi(s_t)^T v &= r(s_t,a_t) + \gamma \phi(s_{t+1})^T v + \epsilon(s_t,a_t,s_{t+1}).
 \end{align}
 which gives involves only linear equations to solve \cite{4863}.
@@ -335,13 +335,13 @@ But, if we recall the definition \eqref{eqn:like-grad} of likelihood-ratio gradi
   \label{eqn:J-equals-F}
 \end{equation}
 
-From \eqref{eqn:nat-grad}, \eqref{eqn:F}, and \eqref{eqn:J-equals-F}, it follows that
+From \eqref{eqn:nat-grad}, and \eqref{eqn:J-equals-F}, it follows that
 \begin{equation}
   \widetilde{\nabla}_\theta J(\theta) = F^{-1}_\theta \nabla_\theta J(\theta) = F_\theta^{-1} F_\theta w = w.
 \end{equation}
 Thus, this approach does not require an actual estimate of the Fisher information matrix, but only an estimate of $w$, with the update step according to $\theta_{k+1} = \theta_k + \alpha_k w$.
 
-Peters et al. \cite{4863} present this idea and suggest LSTD($\lambda$)-Q, a version of least-squares temporal difference learning  \cite{Boyan:1999:LTD:645528.657618}, as well as episodic natural actor-critic (eNAC).
+Peters et al. \cite{4863} present this idea and suggest LSTD-Q($\lambda$), a version of least-squares temporal difference learning  \cite{Boyan:1999:LTD:645528.657618}, as well as episodic natural actor-critic (eNAC).
 
 \section{Conclusion}
 \label{sec:outro}
