@@ -140,7 +140,7 @@ Using the value function, and the Q-function, we can derive a better estimate of
 
 \paragraph{Likelihood-ratio gradients.} 
 For this derivation, we will change the perspective a bit, requiring some additional definitions. 
-We define ${\mu_\pi}_i = \sum_{t=0}^{\infty} \gamma^t p(s_t=s_i | s_0, \pi)$ \cite{puterman2014markov} as the discounted state distribution, though it does not sum up to one without normalization, which can be achieved by multiplying with $(1-\gamma)$. 
+We define ${\mu_\pi}_i = \sum_{t=0}^{\infty} \gamma^t p(s_t=s_i | s_0, \pi)$ as the discounted state distribution, though it does not sum up to one without normalization, which can be achieved by multiplying by $(1-\gamma)$. 
 Note that $\mu_\pi$ is equivalent to the discounted state visit count $d^\pi$ introduced by Sutton et al. \cite{Sutton:1999:PGM:3009657.3009806}.
 Further, we define $P_\pi$ as the transition matrix, i.e. ${P_\pi}_{i,j}=\sum\nolimits_k p(s_j|s_i,a_k)\pi(a_k|s_i)$, $r_\pi$ as the mean rewards for all states given by ${r_\pi}_i = \sum_j r(s_i,a_j)\pi(a_j|s_i)$, and $\mu_0 = \left[\mu_0(s_0),\mu_0(s_1),\ldots\right]^T$ as a vector representing the initial state distribution.
 Finally, we define $V_\pi = \left[ V_\pi(s_0), V_\pi(s_1), \ldots \right]^T$, from which it follows that $V_\pi = \mu_\pi r_\pi$, so we can reformulate the problem as 
