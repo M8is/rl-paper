@@ -274,7 +274,7 @@ With $\hat{A}_\pi(s,a) = f_w^\pi(s,a)$, $\hat{V}_\pi(s) = \phi(s)^T v$, and a ze
   \hat{Q}_\pi(s,a) = \hat{A}_\pi(s,a) + \hat{V}_\pi(s) &= r(s,a) + \gamma \int_\mathbb{S} p(s'|s,a)\hat{V}_\pi(s')ds', \\
   \nabla_\theta \log \pi(a_t|s_t)^T w + \phi(s_t)^T v &= r(s_t,a_t) + \gamma \phi(s_{t+1})^T v + \epsilon(s_t,a_t,s_{t+1}).
 \end{align}
-which gives involves only linear equations to solve \cite{4863}.
+which involves only linear equations to solve \cite{4863}.
 
 With these insights in mind, section \ref{sec:natural} presents the natural gradient, a refined type of gradient which has a convenient fit in the actor-critic setting we just established.
 
