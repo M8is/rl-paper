@@ -149,7 +149,7 @@ which we can take back into the gradient equation
 \end{align}
 The equivalence in \eqref{eqn:likelihood-equiv} comes from the observation that $\nabla_\theta \pi(a|s)$ is distributed over the addition $\nabla_\theta r_\pi + \gamma (\nabla_\theta P_\pi) V_\pi$.
 When we take out this common factor, $Q_\pi(s,a)$ remains.
-Then, we used $\nabla_\theta \pi(a|s) = \pi(a|s)\nabla_\theta\log\pi(a|s)$, obtained from the likelihood ratio $\nabla_\theta \log p(x|\theta) = \frac{\nabla_\theta p(x|\theta)}{p(x|\theta)}$. 
+Then, we use $\nabla_\theta \pi(a|s) = \pi(a|s)\nabla_\theta\log\pi(a|s)$, obtained from the likelihood ratio $\nabla_\theta \log p(x|\theta) = \frac{\nabla_\theta p(x|\theta)}{p(x|\theta)}$. 
 This gives us the likelihood-ratio gradient
 \begin{equation}
 	\nabla_\theta J(\theta) = \mathbb{E}_{\substack{\ s \sim \mu_\pi \\a \sim \pi}} \Big[\nabla_\theta{\log\pi(a|s)}Q_\pi(s,a)\Big],
