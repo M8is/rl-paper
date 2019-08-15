@@ -15,20 +15,20 @@
 
 \title{On Policy Gradients}
 
-\author {Mattis Manfred K{\"a}mmerer}
-\date{Received: date / Accepted: date}
+\author {Mattis Manfred K{\"a}mmerer \\ \normalsize{Technische Universit{\"a}t Darmstadt} \\ \normalsize{mattis.kaemmerer@gmx.de}}
 
 \maketitle
 
 \begin{abstract}
 
 The goal of policy gradient approaches is to find a policy in a given class of policies which maximizes the expected return.
-Given a differentiable model of the policy, we want to apply a gradient-ascent technique to reach the local optimum. 
+Given a differentiable model of the policy, we want to apply a gradient-ascent technique to reach a local optimum. 
 We mainly use gradient ascent, because it is theoretically well researched.
 The main issue is that the policy gradient with respect to the expected return is not available, thus we need to estimate it.
-As they also tend to require on-policy data for the gradient estimate, the biggest weakness of policy gradient algorithms is sample efficiency.
+As policy gradient algorithms also tend to require on-policy data for the gradient estimate, their biggest weakness is sample efficiency.
 For this reason, most research is focused on finding algorithms with improved sample efficiency.
-This paper provides a deep introduction to policy gradient that shows the development of policy gradient approaches, and should enable the reader to follow current research in the area.
+This paper provides a formal introduction to policy gradient that shows the development of policy gradient approaches, and should enable the reader to follow current research on the topic.
+
 \end{abstract}
 
 \section{Introduction}
@@ -47,7 +47,7 @@ In section \ref{sec:prel}, we give some preliminaries and describe the problem s
 In section \ref{sec:pge}, we discuss different approaches to estimate the policy gradient. 
 Using our insights from section \ref{sec:pge}, we derive the actor-critic framework in section \ref{sec:ac}, which harnesses value-function estimation for improved gradient updates. 
 Then, in section \ref{sec:natural}, we introduce some gradient-ascent methods that build on the approaches given in sections \ref{sec:pge} and \ref{sec:ac}, refining the gradient estimation by Fisher's information matrix to get the natural gradient. 
-Finally, in section \ref{sec:outro}, we summarize the contents presented this paper, and give a short conclusion.
+Finally, in section \ref{sec:outro}, we summarize the contents presented in this paper, and give a short conclusion.
 
 \section{Preliminaries}
 \label{sec:prel}
@@ -122,7 +122,7 @@ Finally, we define $V_\pi = \left[ V_\pi(s_0), V_\pi(s_1), \ldots \right]^T$, fr
 	\underset{\theta}{\text{max}}\ J(\theta) &= \mu_0^T V_\pi \\
 	\text{s.t.}\ V_\pi &= r_\pi + \gamma P_\pi V_\pi . \nonumber
 \end{align}
-Since $\mu_0^T$ does not depend on $\theta$, it is obvious that 
+Since $\mu_0^T$ does not depend on $\theta$, 
 \begin{align*}
 	\nabla_\theta J(\theta) &= \nabla_\theta \mu_0^T V_\pi = \mu_0^T \nabla_\theta V_\pi.
 \end{align*}
@@ -154,7 +154,7 @@ This gives us the likelihood-ratio gradient
 	\nabla_\theta J(\theta) = \mathbb{E}_{\substack{\ s \sim \mu_\pi \\a \sim \pi}} \Big[\nabla_\theta{\log\pi(a|s)}Q_\pi(s,a)\Big],
 	\label{eqn:like-grad}
 \end{equation}
-intuitively meaning we should to increase the probability of actions that lead to higher Q-values.
+intuitively meaning we should increase the probability of actions that lead to higher Q-values.
 This formulation enables us to calculate the gradient $\nabla_\theta J(\theta)$, while directly taking advantage of the MDP structure in the form of $Q_\pi(s,a)$.
 
 Obviously, we do not have the true $Q_\pi(s,a)$, thus we need to approximate it by $\hat{Q}_\pi(s,a)$. 
@@ -265,7 +265,7 @@ This would render the process biased.
 Sutton et al. \cite{Sutton:1999:PGM:3009657.3009806} and Konda et al. \cite{NIPS1999_1786} suggest estimating an action value function as in \eqref{eqn:q}. 
 We can approximate this $f_w^\pi$ by least-squares optimization over multiple $\hat{Q}_\pi(s,a)$ obtained from roll-outs. 
 However, Peters et al. \cite{4863} find that this approximation is highly reliant on the distribution of the training data. 
-This comes from the realization, that we use only a subspace of the actual action-value function in $\hat{V}^\pi$, which is only a state value function. 
+This comes from the realization, that we use only a subspace of the true action-value function in $\hat{V}^\pi$, which is only a state value function. 
 One can compare this to approximating a parabola by a line, whereby the approximation changes wildly depending on which part of the parabola is in the training data. 
 An approach to solve this bootstrapping problem is to rewrite the Bellman Equation using \eqref{eqn:adv} and \eqref{eqn:q}.
 With $\hat{A}_\pi(s,a) = f_w^\pi(s,a)$, $\hat{V}_\pi(s) = \phi(s)^T v$, a zero-mean error term $\epsilon \equiv \epsilon(s_t,a_t,s_{t+1})$, we get
@@ -298,7 +298,7 @@ Using the Fisher information matrix $F_\theta$, and the gradient estimate we dis
   \label{eqn:nat-grad}
 \end{equation}
 of the natural gradient. 
-The Fisher information matrix represents the certainty we have on our estimate of the gradient and is defined as the covariance of the log likelihood function of a trajectory $\tau_{\pi}^T$, which as \cite{4863} show can be written as 
+The Fisher information matrix represents the certainty we have on our estimate of the gradient and is defined as the covariance of the log likelihood function of a trajectory $\tau_{\pi}^T$, which as Peters et al. \cite{4863} show can be written as 
 \begin{equation}
   F_\theta = \int_\mathbb{S} d^\pi(s) \int_\mathbb{A} \pi(a|s) \nabla_\theta \log{\pi(a|s)} \nabla_\theta \log{\pi(a|s)}^T dads.
   \label{eqn:F}
@@ -322,7 +322,7 @@ Peters et al. \cite{4863} present this idea and suggest LSTD-Q($\lambda$), a ver
 \label{sec:outro}
 
 In this paper, we have introduced policy gradient methods as a class of reinforcement learning algorithms. 
-We show why policy gradient methods are effective in these environments, and we give some intuitions about the concept. 
+We show why policy gradient methods are effective in these environments, and we give some intuitions for the concept. 
 Further, we show the core elements of policy gradient methods, discuss some intricacies the estimation of the policy gradient brings, and follow the research development in the attempts of improving the efficiency and stability of policy gradients.
 We show that we can reuse value-estimation approaches in actor-critic settings to improve gradient estimate through better policy evaluation.
 This leads to the introduction of the natural gradient as a way to iterate through policy space instead of parameter space, which improves sample efficiency, especially when the gradient in parameter space is very small.
